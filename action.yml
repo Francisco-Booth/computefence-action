@@ -1,0 +1,38 @@
+name: ComputeFence Pre-flight Check
+description: Run ComputeFence doctor before your GPU training job to catch configuration mistakes before billing starts.
+author: Francisco Booth
+
+inputs:
+  output-dir:
+    description: Path to checkpoint output directory to check for persistence
+    required: false
+  dataset:
+    description: Path to dataset file to run integrity checks
+    required: false
+  python-version:
+    description: Python version to use
+    required: false
+    default: '3.11'
+
+runs:
+  using: composite
+  steps:
+    - name: Install ComputeFence
+      shell: bash
+      run: pip install computefence
+
+    - name: Run ComputeFence doctor
+      shell: bash
+      run: |
+        ARGS=""
+        if [ -n "${{ inputs.output-dir }}" ]; then
+          ARGS="$ARGS --output-dir ${{ inputs.output-dir }}"
+        fi
+        if [ -n "${{ inputs.dataset }}" ]; then
+          ARGS="$ARGS --dataset ${{ inputs.dataset }}"
+        fi
+        computefence doctor $ARGS
+
+branding:
+  icon: shield
+  color: green
